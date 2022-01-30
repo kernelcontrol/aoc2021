@@ -169,7 +169,7 @@ int anyLowerDuplicate(Graph* graph) {
 }
 
 // Recursive function to count possible paths between two nodes labeled as provided. Small caves can be visited twice.
-void numberOfPaths1Visit2Visits(Graph* graph, Graph* currentPath, char* startLabel, char* endLabel, int* numPaths) {
+void numberOfPaths2Visits(Graph* graph, Graph* currentPath, char* startLabel, char* endLabel, int* numPaths) {
 
   int occurrences = countOccurrences(currentPath, startLabel);
   // Check if the node can be visited again
@@ -192,7 +192,7 @@ void numberOfPaths1Visit2Visits(Graph* graph, Graph* currentPath, char* startLab
         printf("%s\n", END_LABEL);
       }
     } else {
-      numberOfPaths1Visit2Visits(graph, currentPath, neighbor->label, endLabel, numPaths);
+      numberOfPaths2Visits(graph, currentPath, neighbor->label, endLabel, numPaths);
     }
     neighbor = neighbor->next;
   }
@@ -247,7 +247,7 @@ int main(int argc, char** argv) {
 
   numPaths = 0;
   printf("\n--------Two small cave visits paths----------\n");
-  numberOfPaths1Visit2Visits(graph, path, START_LABEL, END_LABEL, &numPaths);
+  numberOfPaths2Visits(graph, path, START_LABEL, END_LABEL, &numPaths);
   printf("=> Number of paths : %d\n", numPaths);
   printf("----------------------------------------------\n");
 
