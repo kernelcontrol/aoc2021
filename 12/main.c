@@ -9,6 +9,7 @@
 #define MAX_LABEL_LENGTH 128
 #define START_LABEL "start"
 #define END_LABEL "end"
+#define DEBUG 0
 
 // Node structure type
 typedef struct node {
@@ -101,13 +102,22 @@ void printGraph(Graph* graph) {
  printf("-----------------------------\n");
 }
 
+/* 
+ * Display the graph as a path. Used for debugging the current path.
+*/
+void printPath(Graph* path) {
+  for(int i=0; i<path->size; i++) {
+    printf("%s -> ",path->nodes[i]->label);
+  }
+}
+
 // Recursive function to count possible paths between two nodes labeled as provided. Small caves can be visited once.
 void numberOfPaths1Visit(Graph* graph, Graph* currentPath, char* startLabel, char* endLabel, int* numPaths) {
 
   // Check if the nodes has already been visited
-  if (getNode(currentPath, startLabel)) {
+  if (getNode(currentPath, startLabel) && islower(startLabel[0])) {
     return;
-  } else if (islower(startLabel[0])){
+  } else {
     // Mark the node as visited if starts with a lowercase
     addNode(currentPath, createNode(startLabel));
   }
@@ -118,17 +128,20 @@ void numberOfPaths1Visit(Graph* graph, Graph* currentPath, char* startLabel, cha
   while (neighbor != NULL) {
     if (!strncmp(neighbor->label, endLabel, MAX_LABEL_LENGTH)) {
       (*numPaths)++;
+      if (DEBUG == 1) {
+        printf("- ");
+        printPath(currentPath);
+        printf("%s\n", END_LABEL);
+      }
     } else {
       numberOfPaths1Visit(graph, currentPath, neighbor->label, endLabel, numPaths);
     }
     neighbor = neighbor->next;
   }
 
-  // Unmark the node if it has been marked as visited
-  if (islower(startLabel[0])) {
-    free(currentPath->nodes[currentPath->size-1]);
-    currentPath->size--;
-  }
+  // Remove the node form current path
+  free(currentPath->nodes[currentPath->size-1]);
+  currentPath->size--;
 }
 
 // Return  the number of occurrences in the graph of the provided label
@@ -143,11 +156,11 @@ int countOccurrences(Graph* graph, char* nodeLabel) {
   return n;
 }
 
-// Check if there is any duplicate in the graph
-int anyDuplicate(Graph* graph) {
+// Check if there is any lowercase duplicate in the graph
+int anyLowerDuplicate(Graph* graph) {
 
   for (int i=0; i<graph->size; i++) {
-    if (countOccurrences(graph, graph->nodes[i]->label) > 1) {
+    if (islower(graph->nodes[i]->label[0]) && countOccurrences(graph, graph->nodes[i]->label) > 1) {
       return 1;
     }
   }
@@ -160,9 +173,9 @@ void numberOfPaths1Visit2Visits(Graph* graph, Graph* currentPath, char* startLab
 
   int occurrences = countOccurrences(currentPath, startLabel);
   // Check if the node can be visited again
-  if ((occurrences > 1) || (occurrences == 1 && anyDuplicate(currentPath)==1 )) {
+  if (islower(startLabel[0]) && ((occurrences > 1) || (occurrences == 1 && anyLowerDuplicate(currentPath)==1))) {
     return;
-  } else if (islower(startLabel[0])){
+  } else {
     // Mark the node as visited if starts with a lowercase
     addNode(currentPath, createNode(startLabel));
   }
@@ -173,17 +186,20 @@ void numberOfPaths1Visit2Visits(Graph* graph, Graph* currentPath, char* startLab
   while (neighbor != NULL) {
     if (!strncmp(neighbor->label, endLabel, MAX_LABEL_LENGTH)) {
       (*numPaths)++;
+      if (DEBUG == 1) {
+        printf("- ");
+        printPath(currentPath);
+        printf("%s\n", END_LABEL);
+      }
     } else {
       numberOfPaths1Visit2Visits(graph, currentPath, neighbor->label, endLabel, numPaths);
     }
     neighbor = neighbor->next;
   }
 
-  // Unmark the node if it has been marked as visited
-  if (islower(startLabel[0])) {
-    free(currentPath->nodes[currentPath->size-1]);
-    currentPath->size--;
-  }
+  // Remove the node form current path
+  free(currentPath->nodes[currentPath->size-1]);
+  currentPath->size--;
 }
 
 // Read graph from input file
@@ -219,18 +235,21 @@ void readInput(Graph* graph) {
 int main(int argc, char** argv) {
   Graph* graph = createGraph();
   Graph* path = createGraph();
-  int numPaths = 0;
 
   readInput(graph);
   printGraph(graph);
-  numberOfPaths1Visit(graph, path, START_LABEL, END_LABEL, &numPaths);
   
-  printf("\nNumber of paths with 1 visit per small cave : %d\n", numPaths);
+  int numPaths = 0;
+  printf("\n--------One small cave visit paths----------\n");
+  numberOfPaths1Visit(graph, path, START_LABEL, END_LABEL, &numPaths);
+  printf("=> Number of paths : %d\n", numPaths);
+  printf("----------------------------------------------\n");
 
   numPaths = 0;
+  printf("\n--------Two small cave visits paths----------\n");
   numberOfPaths1Visit2Visits(graph, path, START_LABEL, END_LABEL, &numPaths);
-
-  printf("\nNumber of paths with 2 visits per small cave : %d\n", numPaths);
+  printf("=> Number of paths : %d\n", numPaths);
+  printf("----------------------------------------------\n");
 
   exit(EXIT_SUCCESS);
 }
