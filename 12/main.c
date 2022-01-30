@@ -101,8 +101,8 @@ void printGraph(Graph* graph) {
  printf("-----------------------------\n");
 }
 
-// Recursive function to count possible paths between two nodes labeled as provided
-void numberOfPaths(Graph* graph, Graph* currentPath, char* startLabel, char* endLabel, int* numPaths) {
+// Recursive function to count possible paths between two nodes labeled as provided. Small caves can be visited once.
+void numberOfPaths1Visit(Graph* graph, Graph* currentPath, char* startLabel, char* endLabel, int* numPaths) {
 
   // Check if the nodes has already been visited
   if (getNode(currentPath, startLabel)) {
@@ -119,7 +119,62 @@ void numberOfPaths(Graph* graph, Graph* currentPath, char* startLabel, char* end
     if (!strncmp(neighbor->label, endLabel, MAX_LABEL_LENGTH)) {
       (*numPaths)++;
     } else {
-      numberOfPaths(graph, currentPath, neighbor->label, endLabel, numPaths);
+      numberOfPaths1Visit(graph, currentPath, neighbor->label, endLabel, numPaths);
+    }
+    neighbor = neighbor->next;
+  }
+
+  // Unmark the node if it has been marked as visited
+  if (islower(startLabel[0])) {
+    free(currentPath->nodes[currentPath->size-1]);
+    currentPath->size--;
+  }
+}
+
+// Return  the number of occurrences in the graph of the provided label
+int countOccurrences(Graph* graph, char* nodeLabel) {
+  int n = 0;
+
+  for (int i=0; i<graph->size; i++) {
+    if (!strncmp(graph->nodes[i]->label, nodeLabel, MAX_LABEL_LENGTH))
+      n++;
+  }
+
+  return n;
+}
+
+// Check if there is any duplicate in the graph
+int anyDuplicate(Graph* graph) {
+
+  for (int i=0; i<graph->size; i++) {
+    if (countOccurrences(graph, graph->nodes[i]->label) > 1) {
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
+// Recursive function to count possible paths between two nodes labeled as provided. Small caves can be visited twice.
+void numberOfPaths1Visit2Visits(Graph* graph, Graph* currentPath, char* startLabel, char* endLabel, int* numPaths) {
+
+  int occurrences = countOccurrences(currentPath, startLabel);
+  // Check if the node can be visited again
+  if ((occurrences > 1) || (occurrences == 1 && anyDuplicate(currentPath)==1 )) {
+    return;
+  } else if (islower(startLabel[0])){
+    // Mark the node as visited if starts with a lowercase
+    addNode(currentPath, createNode(startLabel));
+  }
+
+  Node* currentNode = getNode(graph, startLabel);
+  Node* neighbor = currentNode->next;
+
+  while (neighbor != NULL) {
+    if (!strncmp(neighbor->label, endLabel, MAX_LABEL_LENGTH)) {
+      (*numPaths)++;
+    } else {
+      numberOfPaths1Visit2Visits(graph, currentPath, neighbor->label, endLabel, numPaths);
     }
     neighbor = neighbor->next;
   }
@@ -168,9 +223,14 @@ int main(int argc, char** argv) {
 
   readInput(graph);
   printGraph(graph);
-  numberOfPaths(graph, path, START_LABEL, END_LABEL, &numPaths);
+  numberOfPaths1Visit(graph, path, START_LABEL, END_LABEL, &numPaths);
   
   printf("\nNumber of paths with 1 visit per small cave : %d\n", numPaths);
+
+  numPaths = 0;
+  numberOfPaths1Visit2Visits(graph, path, START_LABEL, END_LABEL, &numPaths);
+
+  printf("\nNumber of paths with 2 visits per small cave : %d\n", numPaths);
 
   exit(EXIT_SUCCESS);
 }
