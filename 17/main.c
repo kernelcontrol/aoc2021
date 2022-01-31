@@ -1,5 +1,11 @@
 #include <stdio.h>
 
+#define MIN_Y -10000
+#define MIN_VY -1000
+#define MAX_VY 1000
+#define MIN_VX 1
+#define MAX_VX 100
+
 typedef struct {
     int x;
     int y;
@@ -14,7 +20,7 @@ typedef struct {
     int y2;
 } Target;
 
-Probe createProbe(int x, int y, int vx, int vy) {
+Probe initProbe(int x, int y, int vx, int vy) {
     Probe probe;
 
     probe.x = x;
@@ -25,7 +31,7 @@ Probe createProbe(int x, int y, int vx, int vy) {
     return probe;
 }
 
-Target createTarget(int x1, int x2, int y1, int y2) {
+Target initTarget(int x1, int x2, int y1, int y2) {
     Target target;
 
     target.x1 = x1;
@@ -78,11 +84,44 @@ int detectCollision(Probe probe, Target target) {
     return 2;
 }
 
+int playTrajectory(Probe probe, Target target, int* maxy) {
+  int collision = 2;
+
+  while (collision == 2) {
+    moveProbe(&probe);
+    collision = detectCollision(probe, target);
+    if (probe.y > *maxy)
+      *maxy = probe.y;
+  }
+
+  return collision;
+}
+
 int main(int argc, char const *argv[])
 {
-    const char* statuses[] = { "HIT!", "MISS!", "Moving"};
-    Probe probe = createProbe(0, 0, 6, 3);
-    Target target = createTarget(20, 30, -10, -5);
+    Target target = initTarget(217, 240, -126, -69);
+    Probe recordProbe = initProbe(0, 0, 0, 0);
+    int maxY = MIN_Y;
+
+    for (int i=MIN_VX; i<MAX_VX; i++) {
+      for (int j=MIN_VY; j<MAX_VY; j++) {
+        int localMaxY = MIN_Y;
+        Probe probe = initProbe(0, 0, i, j);
+        if (!playTrajectory(probe, target, &localMaxY) && localMaxY > maxY) {
+            recordProbe = probe;
+            maxY = localMaxY;
+        }
+      }
+    }
+    printf("\nTarget : ");
+    displayTarget(target);
+    printf("\n--------------------------------------\n");
+    printf("Highest possible Y : %d\n", maxY);
+    printf("Velocity for highest possible Y : vx=%d vy=%d\n", recordProbe.vx, recordProbe.vy);
+
+    /*const char* statuses[] = { "HIT!", "MISS!", "Moving"};
+    Probe probe = initProbe(0, 0, 5, 4);
+    Target target = initTarget(20, 30, -10, -5);
     int step = 1;
     int collision = 2;
 
@@ -99,7 +138,7 @@ int main(int argc, char const *argv[])
         displayProbe(probe);
         printf("\n");
         step++;
-    } while(collision == 2); 
+    } while(collision == 2); */
 
     return 0;
 }
