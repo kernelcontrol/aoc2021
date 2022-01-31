@@ -4,7 +4,7 @@
 #define MIN_VY -1000
 #define MAX_VY 1000
 #define MIN_VX 1
-#define MAX_VX 100
+#define MAX_VX 1000
 
 typedef struct {
     int x;
@@ -102,14 +102,18 @@ int main(int argc, char const *argv[])
     Target target = initTarget(217, 240, -126, -69);
     Probe recordProbe = initProbe(0, 0, 0, 0);
     int maxY = MIN_Y;
+    int numSolutions = 0;
 
     for (int i=MIN_VX; i<MAX_VX; i++) {
       for (int j=MIN_VY; j<MAX_VY; j++) {
         int localMaxY = MIN_Y;
         Probe probe = initProbe(0, 0, i, j);
-        if (!playTrajectory(probe, target, &localMaxY) && localMaxY > maxY) {
+        if (!playTrajectory(probe, target, &localMaxY)) {
+          numSolutions++;
+          if (localMaxY > maxY) {
             recordProbe = probe;
             maxY = localMaxY;
+          }
         }
       }
     }
@@ -118,6 +122,7 @@ int main(int argc, char const *argv[])
     printf("\n--------------------------------------\n");
     printf("Highest possible Y : %d\n", maxY);
     printf("Velocity for highest possible Y : vx=%d vy=%d\n", recordProbe.vx, recordProbe.vy);
+    printf("Total number of solutions : %d\n", numSolutions);
 
     /*const char* statuses[] = { "HIT!", "MISS!", "Moving"};
     Probe probe = initProbe(0, 0, 5, 4);
