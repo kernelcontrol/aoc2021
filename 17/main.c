@@ -97,8 +97,34 @@ int playTrajectory(Probe probe, Target target, int* maxy) {
   return collision;
 }
 
+// Testing trajecty and collision detection
+void genericTest() {
+    const char* statuses[] = { "HIT!", "MISS!", "Moving"};
+    Probe probe = initProbe(0, 0, 5, 4);
+    Target target = initTarget(20, 30, -10, -5);
+    int step = 1;
+    int collision = 2;
+
+    printf("Probe : ");
+    displayProbe(probe);
+    printf("\nTarget : ");
+    displayTarget(target);
+    printf("\n--------------------------------------\n");
+
+    do {
+        moveProbe(&probe);
+        collision = detectCollision(probe, target);
+        printf("Step %d [%s] : ", step, statuses[collision]);
+        displayProbe(probe);
+        printf("\n");
+        step++;
+    } while(collision == 2);
+}
+
 int main(int argc, char const *argv[])
 {
+    //genericTest();
+
     Target target = initTarget(217, 240, -126, -69);
     Probe recordProbe = initProbe(0, 0, 0, 0);
     int maxY = MIN_Y;
@@ -123,27 +149,6 @@ int main(int argc, char const *argv[])
     printf("Highest possible Y : %d\n", maxY);
     printf("Velocity for highest possible Y : vx=%d vy=%d\n", recordProbe.vx, recordProbe.vy);
     printf("Total number of solutions : %d\n", numSolutions);
-
-    /*const char* statuses[] = { "HIT!", "MISS!", "Moving"};
-    Probe probe = initProbe(0, 0, 5, 4);
-    Target target = initTarget(20, 30, -10, -5);
-    int step = 1;
-    int collision = 2;
-
-    printf("Probe : ");
-    displayProbe(probe);
-    printf("\nTarget : ");
-    displayTarget(target);
-    printf("\n--------------------------------------\n");
-    
-    do {
-        moveProbe(&probe);
-        collision = detectCollision(probe, target);
-        printf("Step %d [%s] : ", step, statuses[collision]);
-        displayProbe(probe);
-        printf("\n");
-        step++;
-    } while(collision == 2); */
 
     return 0;
 }
